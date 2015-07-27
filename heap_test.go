@@ -2,10 +2,10 @@ package heap
 
 import (
 	"log"
-	// "math"
+	"math/rand"
 	// "strconv"
 	"testing"
-	// "time"
+	"time"
 )
 
 type IntKey struct {
@@ -24,17 +24,50 @@ func (this *IntKey) CompareTo(other Key) int {
 	}
 }
 
+const (
+	trials int = 1000000
+)
+
+func logElapsedTime(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
+}
+
 func TestHeap(t *testing.T) {
 
-	heap := NewHeap(1000)
+	defer logElapsedTime(time.Now(), "TestHeap")
 
-	for i := 0; i < 1000; i++ {
+	heap := NewHeap(trials)
+
+	for i := 0; i < trials; i++ {
 		heap.Push(&IntKey{key: i, value: i})
 	}
 
 	for !heap.IsEmpty() {
-		key := heap.Pop()
-		log.Println(key)
+		//key :=
+		heap.Pop()
+		//log.Println(key)
+	}
+
+}
+
+func TestRandomHeap(t *testing.T) {
+
+	defer logElapsedTime(time.Now(), "TestRandomHeap")
+
+	rand.Seed(time.Now().UnixNano())
+
+	heap := NewHeap(trials)
+
+	for i := 0; i < trials; i++ {
+		j := rand.Intn(trials)
+		heap.Push(&IntKey{key: j, value: j})
+	}
+
+	for !heap.IsEmpty() {
+		//key :=
+		heap.Pop()
+		//log.Println(key)
 	}
 
 }
