@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 	// "strconv"
+	"fmt"
 	"testing"
 	"time"
 )
@@ -13,7 +14,12 @@ type IntKey struct {
 	value int
 }
 
+var h Heap
+
 func (this *IntKey) CompareTo(other Key) int {
+	if other == nil {
+		panic(fmt.Sprintf("nil key, this: %t, other: %t", this, other))
+	}
 	otherK := other.(*IntKey)
 	if this.key == otherK.key {
 		return 0
@@ -25,7 +31,7 @@ func (this *IntKey) CompareTo(other Key) int {
 }
 
 const (
-	trials int = 1000000
+	trials int = 10000
 )
 
 func logElapsedTime(start time.Time, name string) {
@@ -37,7 +43,9 @@ func TestHeap(t *testing.T) {
 
 	defer logElapsedTime(time.Now(), "TestHeap")
 
-	heap := NewHeap(trials)
+	done := make(chan struct{})
+	heap := NewHeap(done, trials)
+	h = heap
 
 	for i := 0; i < trials; i++ {
 		heap.Push(&IntKey{key: i, value: i})
@@ -57,7 +65,9 @@ func TestRandomHeap(t *testing.T) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	heap := NewHeap(trials)
+	done := make(chan struct{})
+	heap := NewHeap(done, 0)
+	h = heap
 
 	for i := 0; i < trials; i++ {
 		j := rand.Intn(trials)

@@ -2,6 +2,10 @@ package heap
 
 //	"log"
 
+import (
+	"fmt"
+)
+
 // from Algorithms 4th Ed., by Sedgewick
 
 // Key interface - you'll need to implement the CompareTo method.
@@ -21,81 +25,130 @@ type Heap interface {
 
 type heap struct {
 	keys []Key
-	N    int
+	//	N    int
+	push chan Key
+	done <-chan struct{}
+}
+
+func dump(heap *heap) {
+	for i, key := range heap.keys {
+		fmt.Printf("i: %d, key: %t\n", i, key)
+	}
+	fmt.Printf("N: %d\n", len(heap.keys))
 }
 
 // NewHeap returns a new heap with an initialCapacity
-func NewHeap(initialCapacity int) Heap {
+func NewHeap(done <-chan struct{}, initialCapacity int) Heap {
 	heap := &heap{
 		keys: make([]Key, 0, initialCapacity),
-		N:    0,
+		//	N:    0,
+		push: make(chan Key),
+		done: done,
 	}
+	go heap.run()
 	return heap
 }
 
-func (heap *heap) Push(v Key) {
-	heap.N++
-	heap.keys = append(heap.keys, v)
+func (heap *heap) run() {
+
+run:
+	for {
+		select {
+		case <-heap.done:
+			break run
+		case key := <-heap.push:
+			heap._push(key)
+			// case cmd := <-hub.publish:
+			// hub.publishMsg(cmd)
+		}
+	}
+	return
+}
+
+func (heap *heap) Push(key Key) {
+	if key == nil {
+		panic("Push: nil key")
+	}
+	// go func() {
+	// 	heap.push <- key
+	// }()
+	heap.push <- key
+}
+
+func (heap *heap) _push(key Key) {
+	if key == nil {
+		panic("nil key _push")
+	}
+	heap.keys = append(heap.keys, key)
 	//log.Printf("heap.keys: %s\n", heap.keys)
-	swim(heap.keys, heap.N-1)
+	heap.swim(len(heap.keys) - 1)
 }
 
 func (heap *heap) Pop() Key {
 	if heap.IsEmpty() {
 		return nil
 	}
-	key := heap.keys[0]              // retrieve key from top, order depends on Key.CompareTo implementation
-	exchange(heap.keys, 0, heap.N-1) // exchange with last item
-	heap.N--
-	heap.keys[heap.N] = nil // avoid loitering
-	sink(heap.keys, 0, heap.N-1)
+	key := heap.keys[0]                         // retrieve key from top, order depends on Key.CompareTo implementation
+	heap.exchange(0, len(heap.keys)-1)          // exchange with last item
+	heap.keys = heap.keys[0 : len(heap.keys)-1] // avoid loitering
+	heap.sink(0)
 	return key
 }
 
 func (heap *heap) IsEmpty() bool {
-	return heap.N <= 0
+	return len(heap.keys) == 0
 }
 
 func (heap *heap) Size() int {
-	return heap.N
+	return len(heap.keys)
 }
 
 func (heap *heap) Keys() []Key {
-	return nil
+	return heap.keys
 }
 
-func less(a []Key, i, j int) bool {
-	//log.Printf("a: %s, i: %d, j: %d", a, i, j)
-	return a[i].CompareTo(a[j]) < 0
+func (heap *heap) less(i, j int) bool {
+	// log.Printf("a: %s, i: %d, j: %d", a, i, j)
+	if heap.keys[i] == nil {
+		dump(heap)
+		panic(fmt.Sprintf("i: %d", i))
+	}
+	if heap.keys[j] == nil {
+		dump(heap)
+		panic(fmt.Sprintf("j: %d", j))
+	}
+	return heap.keys[i].CompareTo(heap.keys[j]) < 0
 }
 
-func exchange(a []Key, i, j int) {
-	t := a[i]
-	a[i] = a[j]
-	a[j] = t
+func (heap *heap) exchange(i, j int) {
+	// t := [i]
+	// a[i] = a[j]
+	// a[j] = t
+	heap.keys[i], heap.keys[j] = heap.keys[j], heap.keys[i]
 }
 
 // bubble k up the tree unit it is not less than its parent
 // or until it is at the root
-func swim(a []Key, k int) {
-	for k > 0 && less(a, (k-1)/2, k) {
-		exchange(a, (k-1)/2, k)
+func (heap *heap) swim(k int) {
+	for k > 0 && heap.less((k-1)/2, k) {
+		heap.exchange((k-1)/2, k)
 		k = (k - 1) / 2
 	}
 }
 
 // send down the tree until it is not greater than any of its children
 // or unit it is at the end
-func sink(a []Key, k, N int) {
+func (heap *heap) sink(k int) {
+	N := len(heap.keys) - 1
 	for (2*k + 1) <= N {
-		j := (2*k + 1)                // lh child
-		if j < N && less(a, j, j+1) { // get the greatest child
+		j := (2*k + 1)                  // lh child
+		if j < N && heap.less(j, j+1) { // get the greatest child
 			j++
 		}
-		if !less(a, k, j) {
+		if !heap.less(k, j) {
 			break // no child is greater
 		}
-		exchange(a, k, j) // greatest child becomes parent
-		k = j             // keep sinking
+		heap.exchange(k, j) // greatest child becomes parent
+		k = j               // keep sinking
 	}
 }
