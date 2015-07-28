@@ -31,7 +31,7 @@ func (this *IntKey) CompareTo(other Key) int {
 }
 
 const (
-	trials int = 10000
+	trials int = 1000000
 )
 
 func logElapsedTime(start time.Time, name string) {
@@ -51,10 +51,13 @@ func TestHeap(t *testing.T) {
 		heap.Push(&IntKey{key: i, value: i})
 	}
 
+	curr := heap.Pop().(*IntKey)
 	for !heap.IsEmpty() {
-		//key :=
-		heap.Pop()
-		//log.Println(key)
+		next := heap.Pop().(*IntKey)
+		if curr.key < next.key {
+			t.Errorf("out of order, curr.key: %d, next.key: %d", curr.key, next.key)
+		}
+		curr = next
 	}
 
 }
@@ -74,10 +77,13 @@ func TestRandomHeap(t *testing.T) {
 		heap.Push(&IntKey{key: j, value: j})
 	}
 
+	curr := heap.Pop().(*IntKey)
 	for !heap.IsEmpty() {
-		//key :=
-		heap.Pop()
-		//log.Println(key)
+		next := heap.Pop().(*IntKey)
+		if curr.key < next.key {
+			t.Errorf("out of order, curr.key: %d, next.key: %d", curr.key, next.key)
+		}
+		curr = next
 	}
 
 }
