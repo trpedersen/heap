@@ -1,5 +1,7 @@
 package heap
 
+import "sync"
+
 //	"log"
 
 // from Algorithms 4th Ed., by Sedgewick
@@ -20,6 +22,7 @@ type Heap interface {
 }
 
 type heap struct {
+	sync.Mutex
 	keys []Key
 	N    int
 }
@@ -34,6 +37,8 @@ func NewHeap(initialCapacity int) Heap {
 }
 
 func (heap *heap) Push(v Key) {
+	heap.Lock()
+	defer heap.Unlock()
 	heap.N++
 	heap.keys = append(heap.keys, v)
 	//log.Printf("heap.keys: %s\n", heap.keys)
@@ -41,7 +46,9 @@ func (heap *heap) Push(v Key) {
 }
 
 func (heap *heap) Pop() Key {
-	if heap.IsEmpty() {
+	heap.Lock()
+	defer heap.Unlock()
+	if heap.N <= 0 {
 		return nil
 	}
 	key := heap.keys[0]              // retrieve key from top, order depends on Key.CompareTo implementation
@@ -53,15 +60,19 @@ func (heap *heap) Pop() Key {
 }
 
 func (heap *heap) IsEmpty() bool {
+	heap.Lock()
+	defer heap.Unlock()
 	return heap.N <= 0
 }
 
 func (heap *heap) Size() int {
+	heap.Lock()
+	defer heap.Unlock()
 	return heap.N
 }
 
 func (heap *heap) Keys() []Key {
-	return nil
+	return heap.keys
 }
 
 func less(a []Key, i, j int) bool {
