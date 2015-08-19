@@ -54,17 +54,21 @@ func TestRandomHeap(t *testing.T) {
 
 	rand.Seed(time.Now().UnixNano())
 
-	heap := NewHeap(trials)
+	heap := NewHeap(0)
 
 	for i := 0; i < trials; i++ {
 		j := rand.Intn(trials)
 		heap.Push(&IntKey{key: j, value: j})
 	}
 
+	curr := heap.Pop().(*IntKey)
 	for !heap.IsEmpty() {
-		//key :=
-		heap.Pop()
-		//log.Println(key)
+		next := heap.Pop().(*IntKey)
+		//log.Println(next)
+		if curr.key < next.key {
+			t.Errorf("out of order, curr.key: %d, next.key: %d", curr.key, next.key)
+		}
+		curr = next
 	}
 
 }
