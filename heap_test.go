@@ -3,7 +3,6 @@ package heap
 import (
 	"log"
 	"math/rand"
-	// "strconv"
 	"testing"
 	"time"
 )
@@ -44,9 +43,7 @@ func TestHeap(t *testing.T) {
 	}
 
 	for !heap.IsEmpty() {
-		//key :=
 		heap.Pop()
-		//log.Println(key)
 	}
 
 }
