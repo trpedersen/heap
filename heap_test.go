@@ -107,7 +107,7 @@ func TestRandomHeapConcurrent(t *testing.T) {
 	//}()
 
 	var wg sync.WaitGroup
-	for i := 1; i < 100; i++ {
+	for i := 1; i < 10; i++ {
 		wg.Add(1)
 		go func(j int) {
 			defer wg.Done()
@@ -146,7 +146,7 @@ func TestRandomHeapConcurrentWithPopCh(t *testing.T) {
 	//}(
 
 	var wg sync.WaitGroup
-	for i := 1; i < 100; i++ {
+	for i := 1; i < 10; i++ {
 		wg.Add(1)
 		go func(j int, pop chan<- chan Key) {
 			defer wg.Done()
