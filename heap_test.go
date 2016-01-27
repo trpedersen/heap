@@ -25,7 +25,7 @@ func (this *IntKey) CompareTo(other Key) int {
 }
 
 const (
-	trials int = 1000000
+	trials int = 10000000
 )
 
 func logElapsedTime(start time.Time, name string) {
