@@ -25,7 +25,7 @@ func (this *IntKey) CompareTo(other Key) int {
 }
 
 const (
-	trials int = 10000000
+	trials int = 10000
 )
 
 func logElapsedTime(start time.Time, name string) {
@@ -90,11 +90,15 @@ func TestRandomHeapConcurrent(t *testing.T) {
 	//}()
 
 	var wg sync.WaitGroup
-	for i := 1; i < 100; i++ {
+	for i := 1; i < trials; i++ {
 		wg.Add(1)
 		go func(j int) {
 			defer wg.Done()
-			curr := heap.Pop().(*IntKey)
+			_curr := heap.Pop()
+			if _curr == nil {
+				return
+			}
+			curr := _curr.(*IntKey)
 			for !heap.IsEmpty() {
 				_next := heap.Pop()
 				if _next != nil {
